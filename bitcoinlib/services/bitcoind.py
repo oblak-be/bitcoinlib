@@ -216,6 +216,9 @@ class BitcoindClient(BaseClient):
         MAX_WALLET_TRANSACTIONS = 1000
         txs = []
         res = self.proxy.getaddressinfo(address)
+
+        res['iswatchonly'] = True
+
         if not (res['ismine'] or res['iswatchonly']):
             raise ClientError("Address %s not found in bitcoind wallet, use 'importpubkey' or 'importaddress' to add "
                               "address to wallet." % address)
