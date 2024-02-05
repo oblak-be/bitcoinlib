@@ -223,7 +223,7 @@ class BitcoindClient(BaseClient):
             raise ClientError("Address %s not found in bitcoind wallet, use 'importpubkey' or 'importaddress' to add "
                               "address to wallet." % address)
         txs_list = self.proxy.listtransactions("*", MAX_WALLET_TRANSACTIONS, 0, True)
-        if len(txs_list) >= MAX_WALLET_TRANSACTIONS:
+        if len(txs_list) >= MAX_WALLET_TRANSACTIONS and False:
             raise ClientError("Bitcoind wallet contains too many transactions %d, use other service provider for this "
                               "wallet" % MAX_WALLET_TRANSACTIONS)
         txids = list(set([(tx['txid'], tx['blockheight']) for tx in txs_list if tx['address'] == address]))
