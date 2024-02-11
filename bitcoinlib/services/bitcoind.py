@@ -19,6 +19,8 @@
 #
 
 import configparser
+import logging
+
 from bitcoinlib.main import *
 from bitcoinlib.services.authproxy import AuthServiceProxy
 from bitcoinlib.services.baseclient import BaseClient, ClientError
@@ -217,13 +219,18 @@ class BitcoindClient(BaseClient):
         txs = []
         res = self.proxy.getaddressinfo(address)
 
-        res['iswatchonly'] = True
+        if self.network.name == "regtest":
+            # Fix for regtest: 1000 transactions does not find the one we are looking for
+            # TODO: needs verifying and tests run again, maybe 1000 works now considering other patches where done too.
+            MAX_WALLET_TRANSACTIONS = 1000000000
+            print("EDDI it is regtest -> iswatchonly=True !")
+            res['iswatchonly'] = True
 
         if not (res['ismine'] or res['iswatchonly']):
             raise ClientError("Address %s not found in bitcoind wallet, use 'importpubkey' or 'importaddress' to add "
                               "address to wallet." % address)
         txs_list = self.proxy.listtransactions("*", MAX_WALLET_TRANSACTIONS, 0, True)
-        if len(txs_list) >= MAX_WALLET_TRANSACTIONS and False:
+        if len(txs_list) >= MAX_WALLET_TRANSACTIONS and self.network.name != "regtest":
             raise ClientError("Bitcoind wallet contains too many transactions %d, use other service provider for this "
                               "wallet" % MAX_WALLET_TRANSACTIONS)
         txids = list(set([(tx['txid'], tx['blockheight']) for tx in txs_list if tx['address'] == address]))
